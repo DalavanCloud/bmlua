@@ -125,7 +125,7 @@ function upgrade(pkg, dry_run)
     for k,v in pairs(deps) do
         install(v, dry_run)
     end
-    local cmd = '--nodeps ' .. pkg
+    local cmd = pkg
     if pkg:match('-tmpfs$') then
         cmd = TMPFS_ARG .. ' ' .. cmd
     end
