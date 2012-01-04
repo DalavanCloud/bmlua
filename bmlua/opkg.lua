@@ -119,6 +119,20 @@ function install(pkg, dry_run)
     -- TODO better error handling than this assertion approach?
 end
 
+function upgrade(pkg, dry_run)
+    local deps = info(pkg).depends
+    assert(deps ~= nil)
+    for k,v in pairs(deps) do
+        install(v, dry_run)
+    end
+    local cmd = '--nodeps ' .. pkg
+    if pkg:match('-tmpfs$') then
+        cmd = TMPFS_ARG .. ' ' .. cmd
+    end
+    assert(opkg_cmd_status('upgrade', cmd, dry_run) == 0)
+    -- TODO better error handling than this assertion approach?
+end
+
 function remove(pkg, dry_run)
     for k,v in pairs(NEVER_REMOVE) do
         assert(v ~= pkg)
@@ -137,6 +151,17 @@ function list_installed(dry_run)
         end
     end
     return installed_packages
+end
+
+function list_upgradable(dry_run)
+    upgradable_packages = set.Set()
+    for _, line in pairs(opkg_cmd_stdout("list-upgradable", "", dry_run)) do
+        result = line:match("^(%S+) -")
+        if result ~= nil then
+            upgradable_packages:add(result)
+        end
+    end
+    return upgradable_packages
 end
 
 local get_package_list_directory = function()
@@ -197,3 +222,10 @@ function read_package_list(name)
     return packages
 end
 
+function get_packages_in_repositories(repositories)
+    local packages = set.Set()
+    for repository in repositories:iter() do
+        packages:update(read_package_list(repository))
+    end
+    return packages
+end
