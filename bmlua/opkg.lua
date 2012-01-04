@@ -2,6 +2,9 @@ module(..., package.seeall);
 
 require('os')
 require('io')
+require('bmlua.path')
+require('bmlua.set')
+local set = bmlua.set
 require('bmlua.str')
 
 ------------------------------------------------------------------------------
@@ -15,6 +18,8 @@ local TMPFS_ARG = '-d ram'
 --local OPKG_CMD = '/bin/opkg'
 local OPKG_CMD = '/bin/echo'
 local NEVER_REMOVE = {'libc', 'uclibcxx'}
+--local OPKG_CONF_FILENAME = "/etc/opkg.conf"
+local OPKG_CONF_FILENAME = "/tmp/etc_config/opkg.conf"
 
 ------------------------------------------------------------------------------
 -- LOCAL (PRIVATE) FUNCTIONS
@@ -108,12 +113,11 @@ function install(pkg, dry_run)
     for k,v in pairs(deps) do
         install(v, dry_run)
     end
+    local cmd = '--nodeps ' .. pkg
     if pkg:match('-tmpfs$') then
-        assert(opkg_cmd_status('install', TMPFS_ARG .. ' ' .. pkg, dry_run)
-               == 0)
-    else
-        assert(opkg_cmd_status('install', pkg, dry_run) == 0)
+        cmd = TMPFS_ARG .. ' ' .. cmd
     end
+    assert(opkg_cmd_status('install', cmd, dry_run) == 0)
     -- TODO better error handling than this assertion approach?
 end
 
@@ -121,6 +125,63 @@ function remove(pkg, dry_run)
     for k,v in pairs(NEVER_REMOVE) do
         assert(v ~= pkg)
     end
-    assert(opkg_cmd_status('remove', pkg, dry_run) == 0)
+    local cmd = '--force-depends ' .. pkg
+    assert(opkg_cmd_status('remove', cmd, dry_run) == 0)
     -- TODO check for "No packages removed."
 end
+
+function list_installed(dry_run)
+    installed_packages = set.Set()
+    for _, line in pairs(opkg_cmd_stdout("list-installed", "", dry_run)) do
+        result = line:match("^(%S+) -")
+        if result ~= nil then
+            installed_packages:add(result)
+        end
+    end
+    return installed_packages
+end
+
+local get_package_list_directory = function()
+    local list_directory = nil
+    local handle = io.open(OPKG_CONF_FILENAME, "r")
+    if handle ~= nil then
+        for line in handle:lines() do
+            directory = line:match("^lists_dir%s+%S+%s+(%S+)$")
+            if directory ~= nil then
+                list_directory = directory
+            end
+        end
+        handle:close()
+    end
+    return list_directory
+end
+local package_list_directory = get_package_list_directory()
+
+function get_package_lists()
+    local lists = set.Set()
+    local handle = io.open(OPKG_CONF_FILENAME, "r")
+    if handle ~= nil then
+        for line in handle:lines() do
+            local name = line:match("^src/gz (%S+) ")
+            if name ~= nil then
+                lists:add(name)
+            end
+        end
+    end
+    return lists
+end
+
+function read_package_list(name)
+    local packages = set.Set()
+    local path = bmlua.path.join(package_list_directory, name)
+    local handle = io.open(path, "r")
+    if handle ~= nil then
+        for line in handle:lines() do
+            name = line:match("^Package: (%S+)")
+            if name ~= nil then packages:add(name) end
+        end
+        handle:close()
+    end
+    return packages
+end
+
