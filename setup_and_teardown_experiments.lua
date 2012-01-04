@@ -8,7 +8,6 @@ local set = bmlua.set
 require('bmlua.opkg')
 local opkg = bmlua.opkg
 
-local UPDATER_CONFIG = "bismark-updater"
 local EXPERIMENTS_CONFIG = "bismark-experiments"
 
 local get_managed_repositories = function(config)
