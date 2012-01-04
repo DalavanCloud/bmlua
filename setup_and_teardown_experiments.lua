@@ -50,7 +50,6 @@ function main(arg)
 
     all_repositories = opkg.get_package_lists()
     managed_repositories = get_managed_repositories(config)
-    set.print(managed_repositories)
     unmanaged_repositories = all_repositories:difference(managed_repositories)
 
     unmanaged_packages = get_packages_in_repositories(unmanaged_repositories)

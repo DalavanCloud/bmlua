@@ -48,7 +48,6 @@ function Set(other)
       array = {}
       for item in self:iter() do
           array[#array + 1] = item
-          print(item)
       end
       return array
   end
