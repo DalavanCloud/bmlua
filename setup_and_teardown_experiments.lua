@@ -10,7 +10,6 @@ local opkg = bmlua.opkg
 
 local UPDATER_CONFIG = "bismark-updater"
 local EXPERIMENTS_CONFIG = "bismark-experiments"
-local CONFIG_PATH = "/tmp/etc_config"
 
 local get_managed_repositories = function(cursor)
     local repositories = set.Set()
@@ -49,7 +48,7 @@ local load_experiments = function(cursor, candidate_packages)
 end
 
 function main(arg)
-    cursor = uci.cursor(CONFIG_PATH)
+    cursor = uci.cursor()
 
     all_repositories = opkg.get_package_lists()
     managed_repositories = get_managed_repositories(cursor)

@@ -15,11 +15,9 @@ require('bmlua.str')
 local BAD_SHELL_CHARS = '[#&;`|%*%?~<>^%(%)%[%]%{%}%$%\\\010\255\'\"]'
 local DRY_RUN_ARG = '--noaction'
 local TMPFS_ARG = '-d ram'
---local OPKG_CMD = '/bin/opkg'
-local OPKG_CMD = '/bin/echo'
+local OPKG_CMD = '/bin/opkg'
 local NEVER_REMOVE = {'libc', 'uclibcxx'}
---local OPKG_CONF_FILENAME = "/etc/opkg.conf"
-local OPKG_CONF_FILENAME = "/tmp/etc_config/opkg.conf"
+local OPKG_CONF_FILENAME = "/etc/opkg.conf"
 
 ------------------------------------------------------------------------------
 -- LOCAL (PRIVATE) FUNCTIONS
