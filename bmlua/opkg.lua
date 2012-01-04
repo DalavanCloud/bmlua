@@ -169,6 +169,20 @@ function get_package_lists()
     return lists
 end
 
+function get_package_list_urls()
+    local lists = set.Set()
+    local handle = io.open(OPKG_CONF_FILENAME, "r")
+    if handle ~= nil then
+        for line in handle:lines() do
+            local name, url = line:match("^src/gz (%S+) (%S+)")
+            if name ~= nil then
+                lists:add({name=name, url=url})
+            end
+        end
+    end
+    return lists
+end
+
 function read_package_list(name)
     local packages = set.Set()
     local path = bmlua.path.join(package_list_directory, name)
