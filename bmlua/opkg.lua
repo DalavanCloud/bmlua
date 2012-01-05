@@ -106,11 +106,6 @@ function info(pkg)
 end
 
 function install(pkg, dry_run)
-    local deps = info(pkg).depends
-    assert(deps ~= nil)
-    for k,v in pairs(deps) do
-        install(v, dry_run)
-    end
     local cmd = '--nodeps ' .. pkg
     if pkg:match('-tmpfs$') then
         cmd = TMPFS_ARG .. ' ' .. cmd
