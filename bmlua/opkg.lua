@@ -99,6 +99,9 @@ function info(pkg)
             elseif v:match("^Depends: ") then
                 local depstr = v:sub(9)
                 status.depends = bmlua.str.split(depstr, ', ', false)
+            elseif v:match("^Provides: ") then
+                local provstr = v:sub(10)
+                status.provides = bmlua.str.split(provstr, ', ', false)
             end
         end
     end
