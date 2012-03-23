@@ -1,5 +1,8 @@
 module(..., package.seeall);
 
+UCI_TRUE = '1'
+UCI_FALSE = '0'
+
 function parse_bool(s)
     -- interpret the many ways true or false can be expressed in UCI.
     local retval = nil
