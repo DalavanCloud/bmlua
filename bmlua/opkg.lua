@@ -206,17 +206,47 @@ function get_package_list_urls()
     return lists
 end
 
-function read_package_list(name)
-    local packages = set.Set()
-    local path = bmlua.path.join(package_list_directory, name)
-    local handle = io.open(path, "r")
-    if handle ~= nil then
-        for line in handle:lines() do
-            name = line:match("^Package: (%S+)")
-            if name ~= nil then packages:add(name) end
-        end
-        handle:close()
+-- Check whether the given filename exists and is a gzip. This checks the file's
+-- magic number, so it works regardless of the file extension.
+function is_gzip(filename)
+    local handle, err = io.open(filename, "r")
+    if err ~= nil then
+        print("Error opening file: " .. err)
+        return false
     end
+    local magic_number = handle:read(2)
+    handle:close()
+
+    if magic_number == nil then
+        return false
+    end
+    if magic_number:byte(1) ~= 0x1f or magic_number:byte(2) ~= 0x8b then
+        return false
+    end
+    return true
+end
+
+function read_package_list(name)
+    local path = bmlua.path.join(package_list_directory, name)
+    local handle
+    if is_gzip(path) then
+        handle = io.popen("zcat " .. path)
+    else
+        handle = io.open(path, "r")
+    end
+    if handle == nil then
+        return set.Set()
+    end
+
+    local packages = set.Set()
+    for line in handle:lines() do
+        name = line:match("^Package: (%S+)")
+        if name ~= nil then
+            packages:add(name)
+        end
+    end
+    handle:close()
+
     return packages
 end
 
